@@ -4,8 +4,14 @@ class ProductManager {
       this.nextID = 1;
     }
   
-    addProduct(producto) {
-        const codeExists = this.products.some((product) => product.code === producto.code);
+    addProduct(producto) { 
+      
+      if (!producto.title || !producto.description || !producto.price || !producto.thumbnail || !producto.code || !producto.stock) {
+      console.log("Error: Todos los campos del producto son obligatorios.");
+      return;
+      }
+        
+      const codeExists = this.products.some((product) => product.code === producto.code);
   
       if (codeExists) {
         console.log("Error: Este producto ya existe.");
