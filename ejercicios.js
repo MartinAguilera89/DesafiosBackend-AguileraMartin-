@@ -28,7 +28,7 @@ class ProductManager {
         stock: producto.stock,
       };
   
-      this.products.push(newProduct);
+      this.products.push(newProduct); 
       console.log("Producto agregado:");
       console.log(newProduct);
     }
