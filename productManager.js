@@ -5,8 +5,25 @@ class ProductManager {
     this.path = filePath;
     this.products = [];
     this.nextID = 1;
-    this.loadProductsFromFile();
+    this.iniliatize();
   }
+
+  async iniliatize() {
+    try {
+        const data = await this.readFile()
+        this.products = data
+        this.nextID =
+            this.products.length > 0
+            ? Math.max(...this.products.map(product => product.id)) + 1
+            : 1
+        }
+    catch (error) {
+        console.log(
+            'Error al inicializar la clase ProductManager: ',
+            error.message
+        )
+        }
+    }
 
   async addProduct(producto) {
     if (!producto.title || !producto.description || !producto.price || !producto.thumbnail || !producto.code || !producto.stock) {
@@ -14,10 +31,10 @@ class ProductManager {
       return;
     }
 
-    const codeExists = this.products.some((product) => product.code === producto.code);
+    const codeExists = this.products.some(product => product.code === producto.code);
 
     if (codeExists) {
-      console.log("Error: Este producto ya existe.");
+      console.log('Error: Este producto ya existe.');
       return;
     }
 
@@ -39,7 +56,7 @@ class ProductManager {
   }
 
   async getProductById(id) {
-    const product = this.products.find((product) => product.id === id);
+    const product = this.products.find(product => product.id === id);
 
     if (product) {
       console.log("Producto encontrado:");
@@ -59,7 +76,7 @@ class ProductManager {
     const updatedProduct = {
       id: this.products[productIndex].id,
       ...updatedProductData,
-    };
+    }
     this.products[productIndex] = updatedProduct;
     await this.saveProductsToFile();
     console.log(`Producto actualizado con ID ${id}:`);
@@ -67,57 +84,46 @@ class ProductManager {
   }
 
   async deleteProduct(id) {
-    const productIndex = this.products.findIndex((product) => product.id === id);
+    const productIndex = this.products.findIndex(product => product.id === id);
 
     if (productIndex === -1) {
       console.log(`Error: No se encontró el producto con ID ${id}`);
       return;
     }
-    const deletedProduct = this.products.splice(productIndex, 1)[0];
+    const deletedProduct = this.products.splice(productIndex, 1);
     await this.saveProductsToFile();
     console.log(`Producto eliminado con ID ${id}:`);
     console.log(deletedProduct);
   }
   
-  async loadProductsFromFile() {
+  async readFile() {
+    let finalData = []
     try {
-      const data = await fs.promises.readFile(this.path, 'utf-8');
-      this.products = JSON.parse(data);
-      
-      // Si los datos leídos no son un arreglo, inicializa this.products como un arreglo vacío
-      if (!Array.isArray(this.products)) {
-        this.products = [];
-      }
-    } catch (error) {
-      // Si el archivo no existe, inicializamos el array de productos vacío
-      if (error.code === 'ENOENT') {
-        this.products = [];
-        return;
-      }
-      throw error;
+        finalData = await fs.promises.readFile(this.path, 'utf-8')
+        finalData =JSON.parse(finalData)
     }
+    catch (error) {
+        console.log('error al leer el archivo: ', error.message)
+    }
+    return finalData
   }
   
-
   async getProducts() {
     console.log("Lista de productos:");
-    this.products.forEach((product) => {
-      console.log(product);
-    });
+    return await this.readFile()
   }
 
   async saveProductsToFile() {  
     try {
-      const jsonData = JSON.stringify(this.products, null, 2);
-      await fs.promises.writeFile(this.path, jsonData);
+      await fs.promises.writeFile
+      (this.path, JSON.stringify(this.products, null, 2), 'utf-8');
       console.log("Datos guardados en el archivo:", this.path);
     } catch (error) {
-      console.error("Error al guardar los datos en el archivo:", error);
+      console.error("Error al guardar los datos en el archivo:", error.message)
+      throw error
     }
   }
 }
-
-const productManager = new ProductManager('productos.json');
 
 const producto = {
   title: "Producto de prueba 1",
@@ -137,13 +143,18 @@ const producto2 = {
   stock: 15,
 };
 
+const executeCode = async () => {
+    const productManager = new ProductManager('productos.json')
+        await productManager.iniliatize()
 
-productManager.addProduct(producto);
-productManager.addProduct(producto2);
-productManager.deleteProduct(2);
-productManager.getProductById(1);
-productManager.getProductById(3);
-productManager.updateProduct(1, {
+    console.log(await productManager.getProducts())
+
+await productManager.addProduct(producto);
+await productManager.addProduct(producto2);
+await productManager.deleteProduct(2);
+await productManager.getProductById(1);
+await productManager.getProductById(3);
+await productManager.updateProduct(1, {
   title: "Producto Actualizado",
   description: "Nueva descripción",
   price: 300,
@@ -151,4 +162,7 @@ productManager.updateProduct(1, {
   code: "xyz789",
   stock: 10,
 });
-productManager.getProducts()
+    console.log(await productManager.getProducts())
+}
+
+executeCode()
